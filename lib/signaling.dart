@@ -45,10 +45,18 @@ class Signaling{
 
     // CREATE AND SET LOCAL SDP
     await peerConnection!.setLocalDescription(offer);
-
     await roomRef.set('offer : ${offer.toMap()}');
 
     roomId = roomRef.id;
+
+    // LISTEN TO DataBase FOR NEW SDP
+    roomRef.snapshots().listen((DocumentSnapshot snapshot) async {
+  final Map<String,dynamic> data = snapshot.data() as Map<String, dynamic>;
+   if(data['answer'] != null && peerConnection?.getRemoteDescription() != null){
+     RTCSessionDescription remoteDescription = RTCSessionDescription(data['answer']['sdp'],data['answer']['type']);
+    await peerConnection?.setRemoteDescription(remoteDescription);
+   }
+    },);
 
 
     // GET LOCAL STREAM TRACKS SUCH AS CAMERA VIDEO , SCREEN SHARE , AUDIO
